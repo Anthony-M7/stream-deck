@@ -1,0 +1,12 @@
+[
+    {
+        "nombre": "Cerrar Pesta\u00f1a",
+        "tipo": "hotkey",
+        "valor": "Ctrl+w"
+    },
+    {
+        "nombre": "CAMBIAR PESTA\u00d1A",
+        "tipo": "hotkey",
+        "valor": "Ctrl+tab"
+    }
+]
