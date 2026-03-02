@@ -1,17 +1,18 @@
+import webbrowser
+import pyautogui
+import pygetwindow as gw
+from multiprocessing.util import debug
 from flask import Flask, render_template, jsonify, request
 import pyautogui
-import webbrowser
-import os
-import datetime
-import ctypes
-import pygetwindow as gw
-import json
-
+import os, json, webbrowser, ctypes
+import datetime 
+from io import BytesIO
 import win32clipboard
 from io import BytesIO
+from PIL import Image
 
 app = Flask(__name__)
-pyautogui.FAILSAFE = True 
+pyautogui.FAILSAFE = True
 
 DATA_FILE = 'atajos.json'
 
@@ -25,17 +26,21 @@ def guardar_atajos(lista_atajos):
     with open(DATA_FILE, 'w') as f:
         json.dump(lista_atajos, f, indent=4)
 
-
 def enviar_al_portapapeles(imagen):
     output = BytesIO()
     imagen.convert("RGB").save(output, "BMP")
+    
     data = output.getvalue()[14:]
     output.close()
 
-    win32clipboard.OpenClipboard()
-    win32clipboard.EmptyClipboard()
-    win32clipboard.SetClipboardData(win32clipboard.CF_DIB, data)
-    win32clipboard.CloseClipboard()
+    try:
+        win32clipboard.OpenClipboard()
+        win32clipboard.EmptyClipboard()
+        win32clipboard.SetClipboardData(win32clipboard.CF_DIB, data)
+    except Exception as e:
+        print(f"Error al acceder al portapapeles: {e}")
+    finally:
+        win32clipboard.CloseClipboard()
 
 @app.route('/')
 def index():
@@ -46,45 +51,14 @@ def estado_pc():
     try:
         ventana = gw.getActiveWindow()
         titulo = ventana.title if ventana else "Desconocido"
-        
+
         if len(titulo) > 50:
             titulo = titulo[:50] + "..."
-            
+
         return jsonify({'titulo_ventana': titulo})
+
     except:
         return jsonify({'titulo_ventana': "Esperando..."})
-
-@app.route('/api/atajos', methods=['GET'])
-def api_get_atajos():
-    return jsonify(cargar_atajos())
-
-@app.route('/api/crear', methods=['POST'])
-def api_crear_atajo():
-    data = request.json
-    atajos = cargar_atajos()
-    atajos.append(data)
-    guardar_atajos(atajos)
-    return jsonify({"status": "OK"})
-
-@app.route('/api/borrar/<int:index>', methods=['DELETE'])
-def api_borrar_atajo(index):
-    atajos = cargar_atajos()
-    if 0 <= index < len(atajos):
-        atajos.pop(index)
-        guardar_atajos(atajos)
-        return jsonify({"status": "OK"})
-    return jsonify({"error": "Indice no valido"}), 400
-
-@app.route('/volumen/<direction>/<int:steps>')
-def volumen_slider(direction, steps):
-    key = 'volumeup' if direction == 'up' else 'volumedown'
-    
-    steps = max(1, int(steps / 2)) 
-    
-    pyautogui.press(key, presses=steps)
-        
-    print(f"Volumen {direction} x {steps}")
-    return "OK", 200
 
 @app.route('/ejecutar/<comando>')
 def ejecutar_comando(comando):
@@ -106,7 +80,7 @@ def ejecutar_comando(comando):
             pyautogui.hotkey('ctrl', 't')
         elif comando == 'netflix':
             webbrowser.open("https://www.netflix.com")
-        elif comando == 'chatgpt':
+        elif comando == 'gemini':
             webbrowser.open("https://gemini.google.com/u/1/app?hl=es_419")
         elif comando == 'whatsapp':
             webbrowser.open("https://web.whatsapp.com")
@@ -166,13 +140,47 @@ def ejecutar_custom():
         
     return "OK", 200
 
+@app.route('/api/atajos', methods=['GET'])
+def api_get_atajos():
+    return jsonify(cargar_atajos())
+
+@app.route('/api/crear', methods=['POST'])
+def api_crear_atajo():
+    data = request.json
+    atajos = cargar_atajos()
+    atajos.append(data)
+    guardar_atajos(atajos)
+    return jsonify({"status": "OK"})
+
+@app.route('/api/borrar/<int:index>', methods=['DELETE'])
+def api_borrar_atajo(index):
+    atajos = cargar_atajos()
+    if 0 <= index < len(atajos):
+        atajos.pop(index)
+        guardar_atajos(atajos)
+        return jsonify({"status": "OK"})
+    return jsonify({"error": "Indice no valido"}), 400
+
+@app.route('/volumen/<direction>/<int:steps>')
+def volumen_slider(direction, steps):
+    key = 'volumeup' if direction == 'up' else 'volumedown'
+    
+    steps = max(1, int(steps / 2)) 
+    
+    pyautogui.press(key, presses=steps)
+        
+    print(f"Volumen {direction} x {steps}")
+    return "OK", 200
+
 if __name__ == '__main__':
+    from waitress import serve
+
     print("-------------------------------------------------------")
-    print("SERVIDOR INICIADO CORRECTAMENTE")
+    print("SERVIDOR ACTIVADO")
     print("1. En tu PC entra a:  http://localhost:8000")
     print("2. En tu Celular busca tu IP (ej: 192.168.1.X) y entra a:")
     print("   http://TU_IP:8000")
     print("-------------------------------------------------------")
     
-    from waitress import serve
-    serve(app, host='0.0.0.0', port=8000)
+    serve(app, host='0.0.0.0', port=8000) # Produccion
+    # app.run(debug=True, host='0.0.0.0', port=8000) # Programando

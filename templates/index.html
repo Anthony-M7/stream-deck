@@ -2,22 +2,56 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bit & Vatio PRO</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
-<style>
-        body {
+
+    <style>
+        body{
             background-color: #121212;
             color: #E0E0E0;
-            font-family: 'Montserrat', sans-serif;
+            font-family: "Monstserrat", sans-serif;
             margin: 0;
             padding: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            user-select: none;
-            padding-bottom: 100px; /* Espacio para scroll */
+            padding-bottom: 100px;
         }
+
+        .grid-container{
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .btn {
+            background: #1E1E1E; 
+            border: 2px solid #00FFFF;
+            color: #00FFFF;
+            padding: 15px 5px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 8px;
+            box-shadow: 0 4px 0 #008B8B;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .btn:active { transform: translateY(4px); box-shadow: none; }
+
+        .volume-container {
+            grid-column: span 2; background: #1E1E1E; padding: 10px;
+            border-radius: 10px; border: 1px solid #333; text-align: center;
+        }
+        input[type=range] { width: 100%; accent-color: #00FFFF; height: 25px; }
+        .full-width { grid-column: span 2; }
 
         .info-bar {
             width: 100%; max-width: 400px;
@@ -27,31 +61,14 @@
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
+        .btn-browser { border-color: #FF8C00; color: #FF8C00; box-shadow: 0 4px 0 #9e5700; }
+        .btn-danger { border-color: #FF0055; color: #FF0055; box-shadow: 0 4px 0 #990033; }
+
         .section-title {
             width: 100%; max-width: 400px; text-align: left;
             margin-top: 20px; margin-bottom: 10px;
             color: #aaa; font-size: 0.8rem; border-bottom: 1px solid #333;
         }
-
-        .grid-container {
-            display: grid; grid-template-columns: repeat(2, 1fr);
-            gap: 12px; width: 100%; max-width: 400px;
-        }
-
-        .btn {
-            background: #1E1E1E; border: 2px solid #00FFFF; color: #00FFFF;
-            padding: 15px 5px; font-size: 0.9rem; font-weight: bold;
-            text-align: center; border-radius: 8px; box-shadow: 0 4px 0 #008B8B;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            position: relative;
-        }
-        .btn:active { transform: translateY(4px); box-shadow: none; }
-        
-        /* Botones de Sistema (Colores fijos) */
-        .btn-browser { border-color: #FF8C00; color: #FF8C00; box-shadow: 0 4px 0 #9e5700; }
-        .btn-danger { border-color: #FF0055; color: #FF0055; box-shadow: 0 4px 0 #990033; }
-        .full-width { grid-column: span 2; }
-
         /* Estilo para Botones Custom */
         .btn-custom { border-color: #ADFF2F; color: #ADFF2F; box-shadow: 0 4px 0 #556B2F; }
         .delete-icon {
@@ -61,14 +78,6 @@
             display: none; /* Se oculta por defecto */
         }
         .edit-mode .delete-icon { display: block; }
-
-        /* SLIDER */
-        .volume-container {
-            grid-column: span 2; background: #1E1E1E; padding: 10px;
-            border-radius: 10px; border: 1px solid #333; text-align: center;
-        }
-        input[type=range] { width: 100%; accent-color: #00FFFF; height: 25px; }
-
         /* MODAL DE CREACIÓN */
         #modalCrear {
             display: none; position: fixed; top: 50%; left: 50%;
@@ -87,34 +96,35 @@
             box-sizing: border-box;
         }
         .btn-save { background: #00FFFF; color: black; border: none; padding: 10px; width: 100%; font-weight: bold; cursor: pointer; }
-
+        
     </style>
 </head>
 <body>
+    <h1>Stream Deck - Casero / Bit & Vatio</h1>
 
     <div id="statusInfo" class="info-bar">
         🔌 Conectado - Esperando info...
     </div>
 
     <div class="grid-container">
-        
         <div class="volume-container">
-            <label style="font-size: 0.7rem; color: #aaa;">VOLUMEN MASTER</label>
+            <label for="#volSlider">Control de Volumen</label>
             <input type="range" id="volSlider" min="0" max="100" value="50" oninput="handleVolumeInput(this.value)">
         </div>
 
         <div class="btn" onclick="send('prev')">⏮</div>
         <div class="btn" onclick="send('next')">⏭</div>
+
         <div class="btn full-width" onclick="send('play_pause')">⏯ PLAY / PAUSE</div>
 
         <div class="btn btn-browser" onclick="send('youtube')">📺 YouTube</div>
         <div class="btn btn-browser" onclick="send('netflix')">🍿 Netflix</div>
-        <div class="btn btn-browser" onclick="send('chatgpt')">🧠 GEMINI</div>
+        <div class="btn btn-browser" onclick="send('gemini')">🧠 GEMINI</div>
         <div class="btn btn-social" onclick="send('whatsapp')">💬 WhatsApp</div>
         <div class="btn btn-browser full-width" onclick="send('brave_new')">➕ Nueva Pestaña</div>
 
         <div class="btn" onclick="send('screenshot')">📸 FOTO</div>
-        <div class="btn" onclick="send('antigravity')">🚀 VS CODE</div>
+        <div class="btn" onclick="send('antigravity')">🚀 Antigravity</div>
 
         <div class="btn btn-danger" onclick="send('alt_tab')">🔄 TAB</div>
         <div class="btn btn-danger" onclick="send('bloquear_pc')">🔒 BLOQUEAR</div>
@@ -122,6 +132,7 @@
         <div class="btn btn-danger full-width" onclick="send('cerrar_ventana')">❌ CERRAR APP ❌</div>
 
     </div>
+
     <div class="section-title">MIS ATAJOS</div>
         <div class="grid-container" id="customGrid"></div>
 
@@ -154,7 +165,6 @@
 
         </div>
     </div>
-
 
     <script>
         // --- 1. CARGA INICIAL ---

@@ -15,4 +15,5 @@ PyRect==0.2.0
 PyScreeze==1.0.1
 pytweening==1.2.0
 pywin32==311
+waitress==3.0.2
 Werkzeug==3.1.5
